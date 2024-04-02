@@ -1,0 +1,38 @@
+pipeline {
+    // environment {
+    //     // PATH = "/usr/local/bin:$PATH"
+    //     giteaCredential = 'GITEA'
+    // b688bd99-070b-4653-9fb9-dd2b0d8081ad
+    // }
+    agent any
+    stages {
+        stage('Checkout') { 
+            steps { 
+                // Clonar el repositorio desde Gitea 
+                git branch: 'main', credentialsId: 'b688bd99-070b-4653-9fb9-dd2b0d8081ad', url: 'http://gitea:3000/BrayanMarin/Week3Jenkins.git' 
+            }
+        }
+        stage('Clone repository') { 
+            steps {
+                git 'http://gitea:3000/BrayanMarin/Week3Jenkins'
+            }
+        }
+        
+        stage('Install dependencies') {
+            steps {
+                sh 'pip install -r requirements.txt'
+            }
+        }
+        
+        stage('Run Pylint') {
+            steps {
+                sh 'pylint src'
+            }
+        }
+        
+        // stage('Deploy') {
+        //     steps {
+        //     }
+        // }
+    }
+}

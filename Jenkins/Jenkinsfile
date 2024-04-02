@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') { 
+            steps { 
+                // Clonar el repositorio desde Gitea 
+                git branch: 'main', credentialsId: 'e83868d1-3e5a-4988-a2b5-1313d8152bf3', url: 'http://gitea:3000/BrayanMarin/Week3Jenkins.git' 
+            }
+        }
+        
+        stage('Setup Environment') {
+            steps {
+                script {
+                    // Instalar Poetry
+                    sh 'curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -'
+                    // Agregar Poetry al PATH (modificar si es necesario dependiendo de dónde se instale Poetry)
+                    sh 'echo "export PATH=$HOME/.poetry/bin:$PATH" >> $HOME/.bashrc'
+                    sh 'source $HOME/.bashrc'
+                    // Instalar dependencias con Poetry
+                    sh 'poetry install'
+                }
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                script {
+                    // Ejecutar pylint usando Poetry para acceder al entorno virtual
+                    sh 'poetry run pylint **/*.py'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Ejecutar las pruebas de Django utilizando Poetry
+                    sh 'poetry run python manage.py test'
+                }
+            }
+        }
+
+
+        stage('Deploy') {
+            when {
+                branch 'main' // Asegúrate de que solo se despliegue desde la rama principal
+            }
+            steps {
+                script {
+                    // Aquí se ejecutan los comandos para desplegar tu aplicación
+                    // Puede ser un script de shell, un playbook de Ansible, etc.
+                    // Por ejemplo, un pseudo-script para un despliegue en un servidor remoto podría ser:
+                    
+                    // Ejecutar migraciones de la base de datos
+                    sh 'poetry run python manage.py migrate'
+                    
+                    // Recopilar archivos estáticos
+                    sh 'poetry run python manage.py collectstatic --noinput'
+                    
+                    // Reiniciar el servicio de la aplicación (asumiendo que se usa systemd)
+                    sh 'ssh myuser@myserver "sudo systemctl restart my_django_app.service"'
+                    
+                    // O si estás utilizando una herramienta de orquestación como Docker, Kubernetes, etc.
+                    // sh 'kubectl apply -f deployment.yaml' // Ejemplo para Kubernetes
+                    // sh 'docker-compose up -d' // Ejemplo para Docker Compose
+                    
+                    // O para despliegues en servicios en la nube como AWS, Azure, GCP, etc.
+                    // sh 'aws elasticbeanstalk update-environment --environment-name my-env --version-label my-version' // Ejemplo para AWS Elastic Beanstalk
+                }
+            }
+        }
+
+        stage('Publish results') {
+            steps {
+                echo "Deployment successful"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Build successful"
+        }
+
+        failure {
+            echo "Build failed"
+        }
+    }
+}

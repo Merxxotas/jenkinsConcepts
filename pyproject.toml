@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "jenkinsapi"
+version = "1.0.0"
+description = "Creacion de la api para ser desplegada en Jenkins sobre python"
+authors = ["Brayan Marin Guirales <brayan6590@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
